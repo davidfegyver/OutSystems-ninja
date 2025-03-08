@@ -23,9 +23,9 @@ def scan_module(url, root_module_name, module_name, results):
     languageResources = {}
     referenced_modules = []
     
-    
+    print(f"[*] Running referencesHealth check for {root_module_name}/{module_name}")
+
     try:
-        print(f"[*] Running referencesHealth check for {root_module_name}/{module_name}")
         referenced_modules = osninja.checks.ReferencesHealth.run(url, root_module_name, module_name)
     except Exception as e:
         print(f"[*] Error running referencesHealth check for {root_module_name}/{module_name}: {e}")
@@ -53,8 +53,6 @@ def scan_module(url, root_module_name, module_name, results):
         print(f"[+] Error running languageResources check for {root_module_name}/{module_name}: {e}")
 
     results['modules'][root_module_name][module_name]['languageResources'] = languageResources
-
-    print(f"[*] Running referencesHealth check for {root_module_name}/{module_name}")
     
     for ref_module in process_modules(referenced_modules):
         scan_module(url, root_module_name, ref_module, results)
