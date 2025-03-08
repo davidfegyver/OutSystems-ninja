@@ -1,0 +1,17 @@
+_Lib    Generic Library module.
+_IS     Integration Services - technical wrapper to consume and normalize an external service.
+_Drv    Driver module - to have several integration services with different systems, performing the same type of operation (e.g. printers) you can create several drivers exposing the same API, with specialized implementations (like the transparency services pattern).
+_Th     Theme, look & feel elements, menu, etc.
+_Pat    Reusable UI Patterns for layout and display only - no Business logic.
+_CS     Reusable Core Services with public entities, actions, and blocks.
+_CSM    Reusable Core Services with public entities, actions, and blocks. (Mobile)
+_BL     Isolated Business Logic (Actions) to manage complexity, composition or to have its own lifecycle.
+_BLM    Isolated Business Logic (Actions) to manage complexity, composition or to have its own lifecycle. (Mobile)
+_CW     Isolated Core Widgets (blocks) to manage complexity, composition or to have its own lifecycle.
+_CWM    Isolated Core Widgets (blocks) to manage complexity, composition or to have its own lifecycle. (Mobile)
+_Eng    A _BL becomes a Calculation Engine if it performs complex calculations, (e.g. an invoice calculation engine or an insurance simulator). Engines are usually subject to versions.
+_Sync   Logic to Synchronize data in _CS's with an external system. 
+_API    Technical wrapper to expose an API to External consumers, keeping core services system agnostic and supporting multiple versions of the API.
+_Arch   meow
+_Assets meow
+_Core   meow
