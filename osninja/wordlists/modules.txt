@@ -15,3 +15,16 @@ _API    Technical wrapper to expose an API to External consumers, keeping core s
 _Arch   meow
 _Assets meow
 _Core   meow
+_Email
+_Ext
+_Extension
+_MobileComponents
+_MobileTheme
+_Patterns
+_Resources
+_REST
+_Theme
+_UTIL
+_v1
+_v2
+_v3

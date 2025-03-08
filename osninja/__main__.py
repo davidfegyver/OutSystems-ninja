@@ -25,6 +25,7 @@ parser.add_argument('-p', help='http proxy to use', dest='http_proxy')
 parser.add_argument('-rl', help='maximum requests to send per second (default 150)', dest='rate_limit', type=int, default=150)
 parser.add_argument('-H',  help='custom http headers to send with request. can be supplied multiple times', dest='headers', action='append')
 parser.add_argument('-k', help='list of known applications on the target', dest='known')
+parser.add_argument('-perms', help="enable permutations for module names - WARNING - takes a lot of time, and not sure if it really helps with anything. it was just cool to implement", action='store_true')
 
 args = parser.parse_args() 
 
@@ -55,6 +56,8 @@ if args.headers:
 
 if args.known:
     osninja.mem.config['known'] = args.known.split(',')
+
+osninja.mem.config['perms'] = args.perms
 
 
 
