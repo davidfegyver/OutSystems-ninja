@@ -45,3 +45,6 @@ OutSystemsUI
 TextDictionary
 HashTable
 Charts
+EnhancedSAPReferences
+DateTime
+DBConnectionsConfig

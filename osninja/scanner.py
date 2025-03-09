@@ -3,84 +3,100 @@ import osninja.mem
 import osninja.checks.AppDefinition
 import osninja.checks.ReferencesHealth
 import osninja.checks.LanguageResources
+import osninja.checks.DefaultEntry
 import osninja.generate_module_stuff
-import osninja.internalModules
+import osninja.knownModule
+import osninja.checks.ModuleServices
 
+from colorama import Fore, Style
 
 
 def process_modules(modules):
     if osninja.mem.config['perms']:
         return osninja.generate_module_stuff.generate_module_stuff(modules)
     return modules
-    
 
-def scan_module(url, root_module_name, module_name, results):
-    if f"{root_module_name}/{module_name}".lower() in results['scanned_modules']:
+def module_references_scan(url, root_module_name, module_name, results):
+    if module_name in results['module_references'] and len(results['module_references'][module_name]) > 0:
         return 
-    results['scanned_modules'].add(f"{root_module_name}/{module_name}".lower())
     
-    if osninja.internalModules.is_internal_module(module_name):
+    if osninja.knownModule.is_internal_module(module_name):
         return
 
-    if root_module_name not in results['modules']:
-        results['modules'][root_module_name] = {}
-    if module_name not in results['modules'][root_module_name]:
-        results['modules'][root_module_name][module_name] = {}
-
-    appdefinition = {}
-    languageResources = {}
-    referenced_modules = []
-    
-    print(f"[*] Running referencesHealth check for {root_module_name}/{module_name}")
-
+    print(f"\r\033[K[*] Scanning {module_name}", end="")
     try:
         referenced_modules = osninja.checks.ReferencesHealth.run(url, root_module_name, module_name)
     except Exception as e:
-        print(f"[*] Error running referencesHealth check for {root_module_name}/{module_name}: {e}")
+        print(f"\n{Fore.RED}[!] Error while scanning {module_name}: {e}{Style.RESET_ALL}\n")
 
-    results['modules'][root_module_name][module_name]['referenced_modules'] = referenced_modules
+    results['module_references'][module_name] = referenced_modules or []
     
-    if len(referenced_modules) == 0:
-        print(f"[*] No referenced modules found for {root_module_name}/{module_name}")
-        results['modules'][root_module_name].pop(module_name)
-        return
-
-    if root_module_name == module_name:
-        print(f"[*] Running appDefinition check for {root_module_name}/{module_name}")
-        try:
-            appdefinition = osninja.checks.AppDefinition.run(url, root_module_name, root_module_name)
-        except Exception as e:
-            print(f"[*] Error running appDefinition check for {root_module_name}/{module_name}: {e}")
-            appdefinition = {}
-        results['modules'][root_module_name][module_name]['appDefinition'] = appdefinition
-        
-    print(f"[*] Running languageResources check for {root_module_name}/{module_name}")
-    try:
-        languageResources = osninja.checks.LanguageResources.run(url, root_module_name, module_name)
-    except Exception as e:
-        print(f"[+] Error running languageResources check for {root_module_name}/{module_name}: {e}")
-
-    results['modules'][root_module_name][module_name]['languageResources'] = languageResources
-    
-    for ref_module in process_modules(referenced_modules):
-        scan_module(url, root_module_name, ref_module, results)
-        scan_module(url, ref_module, ref_module, results)
-
-    if appdefinition == {} and languageResources == {} and referenced_modules == []:
-        print(f"[*] No appDefinition, languageResources or referenced_modules found for {root_module_name}/{module_name}")
+    for referenced_module_name in referenced_modules:
+        module_references_scan(url, root_module_name, referenced_module_name, results)
+        module_references_scan(url, referenced_module_name, referenced_module_name, results)
 
 def scan(url):
     results = {
-        "modules": {},
-        "scanned_modules": set()
+        "module_references": {},
+        "appdefinitions": {},
+        "language_resources": {},
+        "default_entries": [],
+        "moduleservices": {}
     }
     
-
+    print(f"{Fore.GREEN}[*] Starting Module References scan {url}{Style.RESET_ALL}")
     for root_module in process_modules(osninja.mem.config['known']):
-        scan_module(url, root_module,root_module, results)
-    
-    for root_module in results['modules'].copy():
-        if results['modules'][root_module] == {}:
-            results['modules'].pop(root_module)
+        module_references_scan(url, root_module, root_module, results)
+    print(f"\n{Fore.GREEN}[*] Found {len(results["module_references"])} modules in total{Style.RESET_ALL}")
+
+    print(f"{Fore.GREEN}[*] Starting AppDefinition scan {url}{Style.RESET_ALL}")
+    for module_name in results["module_references"]:
+        print(f"\r\033[K[*] Scanning {module_name}", end="")
+        try:
+            appdefinition = osninja.checks.AppDefinition.run(url, module_name)
+        except Exception as e:
+            print(f"\n{Fore.RED}[!] Error while scanning {module_name}: {e}{Style.RESET_ALL}\n")
+
+        if appdefinition:
+            results["appdefinitions"][module_name] = appdefinition 
+    print(f"\n{Fore.GREEN}[*] Found {len(results['appdefinitions'])} AppDefinitions in total{Style.RESET_ALL}")
+
+    print(f"{Fore.GREEN}[*] Starting LanguageResources scan {url}{Style.RESET_ALL}")
+
+    for module_name in results["module_references"]:
+        print(f"\r\033[K[*] Scanning {module_name}", end="")
+        try:
+            language_resources = osninja.checks.LanguageResources.run(url, module_name)
+        except Exception as e:
+            print(f"\n{Fore.RED}[!] Error while scanning {module_name}: {e}{Style.RESET_ALL}\n")
+
+        if language_resources:
+            results["language_resources"][module_name] = language_resources
+
+    print(f"\n{Fore.GREEN}[*] Found {len(results['language_resources'])} LanguageResources in total{Style.RESET_ALL}")
+
+    print(f"{Fore.GREEN}[*] Starting DefaultEntry scan {url}{Style.RESET_ALL}")
+    for module_name in results["module_references"]:
+        print(f"\r\033[K[*] Scanning {module_name}", end="")
+        try:
+            default_entry = osninja.checks.DefaultEntry.run(url, module_name)
+        except Exception as e:
+            print(f"\n{Fore.RED}[!] Error while scanning {module_name}: {e}{Style.RESET_ALL}\n")
+
+        if default_entry:
+            results["default_entries"].append(module_name)
+
+    print(f"\n{Fore.GREEN}[*] Found {len(results['default_entries'])} DefaultEntries in total{Style.RESET_ALL}")
+
+    print(f"{Fore.GREEN}[*] Starting ModuleServices scan {url}{Style.RESET_ALL}")
+    for module_name in results["module_references"]:
+        print(f"\r\033[K[*] Scanning {module_name}", end="")
+        try:
+            module_services = osninja.checks.ModuleServices.run(url, module_name)
+        except Exception as e:
+            print(f"\n{Fore.RED}[!] Error while scanning {module_name}: {e}{Style.RESET_ALL}\n")
+
+        if module_services:
+            results["moduleservices"][module_name] = module_services
     
     return results

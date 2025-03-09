@@ -5,8 +5,8 @@ import re
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def run(target, root_module_name, module_name):
-    url = f"{target}/{root_module_name}/scripts/{module_name}.languageResources.js"
+def run(target, module_name):
+    url = f"{target}/{module_name}/scripts/{module_name}.languageResources.js"
     response = requests.get(url, verify=False)
 
     languageResources = {}
@@ -17,6 +17,7 @@ def run(target, root_module_name, module_name):
         languageResources = {key: value for key, value in matches}
 
     else:
-        print(f"{Fore.YELLOW}[!] languageResources for {root_module_name}/{module_name} not found{Style.RESET_ALL}")
+        pass
+        #print(f"{Fore.YELLOW}[!] languageResources for {root_module_name}/{module_name} not found{Style.RESET_ALL}")
     
     return languageResources

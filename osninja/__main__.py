@@ -14,6 +14,8 @@ from colorama import Fore, Style
 from urllib.parse import urlparse
 import urllib3
 
+import osninja.graph
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 parser = argparse.ArgumentParser(prog=osninja.__program__, description=osninja.__description__) 
@@ -43,7 +45,7 @@ if args.out_folder:
         print(f'{Fore.RED}[!] Output folder already exists: {args.out_folder}{Style.RESET_ALL}')
         exit()
 else:
-    osninja.mem.config['out_folder'] = f'out_{time.strftime("%H-%M-%S")}'
+    osninja.mem.config['out_folder'] = f'outputs/out_{time.strftime("%H-%M-%S")}'
 
 if args.http_proxy:
     osninja.mem.config['http_proxy'] = args.http_proxy
@@ -70,10 +72,8 @@ def main():
             print(f'{Fore.GREEN}[*] Scanning {url}{Style.RESET_ALL}')
             osninja.mem.config['current_target'] = url 
             result = osninja.scanner.scan(url)
-            print(f'{Fore.GREEN}[*] Done scanning {url}{Style.RESET_ALL}')
+            print(f'\n{Fore.GREEN}[*] Done scanning {url}{Style.RESET_ALL}')
         
-            result['scanned_modules'] = list(result['scanned_modules'])
-
     except KeyboardInterrupt:
         exit()
     except Exception as e:
@@ -83,6 +83,8 @@ def main():
             hostname = urlparse(url).hostname
             with open(f'{osninja.mem.config["out_folder"]}/{hostname}.json', 'w') as f:
                 json.dump(result, f, indent=4)
+
+            osninja.graph.write_graph(result, f'{osninja.mem.config["out_folder"]}/{hostname}.png')
 
         print(f'{Fore.GREEN}[*] Results saved in {osninja.mem.config["out_folder"]}{Style.RESET_ALL}')
 if __name__ == '__main__':

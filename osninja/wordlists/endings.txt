@@ -22,9 +22,12 @@ _MobileComponents
 _MobileTheme
 _Patterns
 _Resources
-_REST
-_Theme
-_UTIL
-_v1
-_v2
-_v3
+_REST   Technical wrapper to expose an API to External consumers
+_Theme  Theme, look & feel elements, menu, etc.
+_UTIL   
+_v1     First version of a module
+_v2     Second version of a module
+_v3     Third version of a module
+_FO     Front office 
+_BO     Back office
+_OAPI   
