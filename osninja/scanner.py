@@ -4,6 +4,9 @@ import osninja.checks.AppDefinition
 import osninja.checks.ReferencesHealth
 import osninja.checks.LanguageResources
 import osninja.generate_module_stuff
+import osninja.internalModules
+
+
 
 def process_modules(modules):
     if osninja.mem.config['perms']:
@@ -14,10 +17,15 @@ def process_modules(modules):
 def scan_module(url, root_module_name, module_name, results):
     if f"{root_module_name}/{module_name}" in results['scanned_modules']:
         return 
-    
     results['scanned_modules'].add(f"{root_module_name}/{module_name}")
     
-    results['modules'][root_module_name][module_name] = {}
+    if osninja.internalModules.is_internal_module(module_name):
+        return
+
+    if root_module_name not in results['modules']:
+        results['modules'][root_module_name] = {}
+    if module_name not in results['modules'][root_module_name]:
+        results['modules'][root_module_name][module_name] = {}
 
     appdefinition = {}
     languageResources = {}
@@ -56,6 +64,7 @@ def scan_module(url, root_module_name, module_name, results):
     
     for ref_module in process_modules(referenced_modules):
         scan_module(url, root_module_name, ref_module, results)
+        scan_module(url, ref_module, ref_module, results)
 
     if appdefinition == {} and languageResources == {} and referenced_modules == []:
         print(f"[*] No appDefinition, languageResources or referenced_modules found for {root_module_name}/{module_name}")
@@ -68,15 +77,7 @@ def scan(url):
     
 
     for root_module in process_modules(osninja.mem.config['known']):
-        results['modules'][root_module] = {}
         scan_module(url, root_module,root_module, results)
-
-
-    for root_module in results['scanned_modules'].copy():
-        root_module = root_module.split('/')[1]
-        if root_module not in results['modules']: 
-            results['modules'][root_module] = {}
-        scan_module(url, root_module, root_module, results)
     
     for root_module in results['modules'].copy():
         if results['modules'][root_module] == {}:
