@@ -15,9 +15,9 @@ def process_modules(modules):
     
 
 def scan_module(url, root_module_name, module_name, results):
-    if f"{root_module_name}/{module_name}" in results['scanned_modules']:
+    if f"{root_module_name}/{module_name}".lower() in results['scanned_modules']:
         return 
-    results['scanned_modules'].add(f"{root_module_name}/{module_name}")
+    results['scanned_modules'].add(f"{root_module_name}/{module_name}".lower())
     
     if osninja.internalModules.is_internal_module(module_name):
         return
