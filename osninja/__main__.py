@@ -9,6 +9,8 @@ import os
 
 import osninja.scanner
 
+import osninja.checks.ScreenServices
+
 from colorama import Fore, Style
 
 from urllib.parse import urlparse
@@ -71,7 +73,7 @@ def main():
             url = url.strip()
             print(f'{Fore.GREEN}[*] Scanning {url}{Style.RESET_ALL}')
             osninja.mem.config['current_target'] = url 
-            result = osninja.scanner.scan(url)
+            result[url] = osninja.scanner.scan(url)
             print(f'\n{Fore.GREEN}[*] Done scanning {url}{Style.RESET_ALL}')
         
     except KeyboardInterrupt:
@@ -82,9 +84,15 @@ def main():
         for url in osninja.mem.config['urls']:
             hostname = urlparse(url).hostname
             with open(f'{osninja.mem.config["out_folder"]}/{hostname}.json', 'w') as f:
-                json.dump(result, f, indent=4)
+                json.dump(result[url], f, indent=4)
 
-            osninja.graph.write_graph(result, f'{osninja.mem.config["out_folder"]}/{hostname}.png')
+            
+            openapi = osninja.checks.ScreenServices.openapi_generator(url, result[url]["screenservices"])
+
+            with open(f'{osninja.mem.config["out_folder"]}/{hostname}.openapi.json', 'w') as f:
+                json.dump(openapi, f, indent=4)
+
+            osninja.graph.write_graph(result[url], f'{osninja.mem.config["out_folder"]}/{hostname}.png')
 
         print(f'{Fore.GREEN}[*] Results saved in {osninja.mem.config["out_folder"]}{Style.RESET_ALL}')
 if __name__ == '__main__':

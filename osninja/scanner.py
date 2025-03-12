@@ -7,6 +7,7 @@ import osninja.checks.DefaultEntry
 import osninja.generate_module_stuff
 import osninja.knownModule
 import osninja.checks.ModuleServices
+import osninja.checks.ScreenServices
 
 from colorama import Fore, Style
 
@@ -99,4 +100,13 @@ def scan(url):
         if module_services:
             results["moduleservices"][module_name] = module_services
     
+    print(f"\n{Fore.GREEN}[*] Found {len(results['moduleservices'])} ModuleServices in total{Style.RESET_ALL}")
+
+    results["screenservices"] = {}
+
+    try:
+        results["screenservices"] = osninja.checks.ScreenServices.run(url, results)
+    except Exception as e:
+        print(f"\n{Fore.RED}[!] Error while scanning ScreenServices: {e}{Style.RESET_ALL}\n")
+
     return results
